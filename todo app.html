@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Tasks</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.10);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --hint: #a0a0a0;
+    --green: #1D9E75;
+    --red: #E24B4A;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --border: rgba(255,255,255,0.10);
+      --border-md: rgba(255,255,255,0.18);
+      --text: #f0efe9;
+      --muted: #a0a0a0;
+      --hint: #666;
+    }
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; padding: 2rem 1rem; }
+  .container { max-width: 640px; margin: 0 auto; }
+
+  h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.4px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .progress-label { font-size: 13px; color: var(--muted); }
+
+  .lists-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+  .list-pill { padding: 5px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 0.5px solid var(--border-md); background: var(--surface); color: var(--muted); transition: all 0.15s; }
+  .list-pill.active { background: var(--text); color: var(--bg); border-color: transparent; font-weight: 500; }
+  .list-pill.add-list { border-style: dashed; display: flex; align-items: center; gap: 4px; }
+  .list-pill.add-list:hover { color: var(--text); }
+
+  .add-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-xl); padding: 1rem; margin-bottom: 1.25rem; }
+  .add-row { display: flex; gap: 8px; }
+  .add-input { flex: 1; height: 40px; padding: 0 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--bg); color: var(--text); font-size: 14px; outline: none; }
+  .add-input:focus { border-color: var(--text); }
+  .meta-row { display: flex; gap: 8px; margin-top: 10px; }
+  .meta-row input[type=datetime-local], .meta-row select { flex: 1; height: 36px; padding: 0 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--bg); color: var(--muted); font-size: 13px; outline: none; }
+  .meta-row input:focus, .meta-row select:focus { border-color: var(--border-md); color: var(--text); }
+  .btn { height: 40px; padding: 0 16px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--text); color: var(--bg); cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.85; }
+
+  .filter-row { display: flex; gap: 6px; align-items: center; margin-bottom: 1rem; }
+  .filter-btn { padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--muted); transition: all 0.15s; }
+  .filter-btn.active { background: var(--surface); color: var(--text); border-color: var(--border-md); font-weight: 500; }
+  .count { font-size: 12px; color: var(--hint); margin-left: auto; }
+
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+  .task-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; transition: border-color 0.15s; }
+  .task-card:hover { border-color: var(--border-md); }
+  .task-card.done { opacity: 0.55; }
+  .task-top { display: flex; align-items: flex-start; gap: 10px; }
+  .task-check { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border-md); cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; background: transparent; transition: all 0.15s; }
+  .task-check.checked { background: var(--green); border-color: var(--green); }
+  .task-check i { font-size: 12px; color: #fff; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 14px; line-height: 1.45; word-break: break-word; }
+  .task-title.done { text-decoration: line-through; color: var(--muted); }
+  .task-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .task-list-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--bg); color: var(--muted); border: 0.5px solid var(--border); }
+  .task-date { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 3px; }
+  .task-date.overdue { color: var(--red); }
+  .task-actions { display: flex; gap: 2px; margin-left: auto; flex-shrink: 0; }
+  .task-actions button { width: 30px; height: 30px; border: none; background: transparent; cursor: pointer; color: var(--muted); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.15s; }
+  .task-actions button:hover { background: var(--bg); color: var(--text); }
+  .task-actions button.del:hover { color: var(--red); }
+  .edit-input { width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text); font-family: inherit; line-height: 1.45; }
+
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--hint); font-size: 14px; }
+  .empty i { font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.35; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .modal { background: var(--surface); border-radius: var(--radius-xl); border: 0.5px solid var(--border-md); padding: 1.5rem; width: 300px; }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; }
+  .modal input { width: 100%; height: 38px; margin-bottom: 1rem; padding: 0 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--bg); color: var(--text); font-size: 14px; outline: none; }
+  .modal input:focus { border-color: var(--text); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-actions button { padding: 7px 16px; border-radius: var(--radius-md); border: 0.5px solid var(--border-md); background: var(--bg); color: var(--text); cursor: pointer; font-size: 13px; transition: all 0.15s; }
+  .modal-actions button.primary { background: var(--text); color: var(--bg); border-color: transparent; font-weight: 500; }
+  .modal-actions button:hover { opacity: 0.8; }
+
+  @media (max-width: 500px) {
+    .meta-row { flex-direction: column; }
+    .add-row { flex-direction: column; }
+    .btn { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+const state = {
+  lists: ['Personal', 'Work', 'Shopping'],
+  activeList: 'All',
+  tasks: [
+    { id: 1, title: 'Review project proposal', list: 'Work', done: false, date: '', editing: false },
+    { id: 2, title: 'Buy groceries', list: 'Shopping', done: false, date: '', editing: false },
+    { id: 3, title: 'Call dentist for appointment', list: 'Personal', done: true, date: '', editing: false }
+  ],
+  filter: 'all',
+  nextId: 4,
+  newTitle: '',
+  newDate: '',
+  newList: '',
+  showModal: false,
+  newListName: ''
+};
+
+function save() {
+  try { localStorage.setItem('todo_state', JSON.stringify({ lists: state.lists, tasks: state.tasks, nextId: state.nextId })); } catch(e) {}
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem('todo_state') || 'null');
+    if (s) { state.lists = s.lists; state.tasks = s.tasks; state.nextId = s.nextId; }
+  } catch(e) {}
+}
+
+function fmt(dt) {
+  if (!dt) return null;
+  const d = new Date(dt);
+  if (isNaN(d)) return null;
+  const now = new Date();
+  const mo = d.toLocaleString('default', { month: 'short' });
+  const day = d.getDate();
+  const hr = d.getHours().toString().padStart(2, '0');
+  const min = d.getMinutes().toString().padStart(2, '0');
+  return { text: `${mo} ${day}, ${hr}:${min}`, overdue: d < now };
+}
+
+function getFiltered() {
+  let tasks = state.tasks;
+  if (state.activeList !== 'All') tasks = tasks.filter(t => t.list === state.activeList);
+  if (state.filter === 'active') tasks = tasks.filter(t => !t.done);
+  if (state.filter === 'done') tasks = tasks.filter(t => t.done);
+  return tasks;
+}
+
+function render() {
+  const filtered = getFiltered();
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.done).length;
+
+  const listPills = ['All', ...state.lists].map(l =>
+    `<button class="list-pill${state.activeList === l ? ' active' : ''}" onclick="setList('${esc(l)}')">${esc(l)}</button>`
+  ).join('') +
+  `<button class="list-pill add-list" onclick="openModal()"><i class="ti ti-plus" style="font-size:13px"></i> New list</button>`;
+
+  const taskItems = filtered.length ? filtered.map(t => {
+    const dt = fmt(t.date);
+    return `<div class="task-card${t.done ? ' done' : ''}">
+      <div class="task-top">
+        <div class="task-check${t.done ? ' checked' : ''}" onclick="toggle(${t.id})" title="Toggle complete">
+          ${t.done ? '<i class="ti ti-check"></i>' : ''}
+        </div>
+        <div class="task-body">
+          ${t.editing
+            ? `<input class="edit-input" id="edit-${t.id}" value="${esc(t.title)}" onblur="saveEdit(${t.id},this.value)" onkeydown="if(event.key==='Enter')saveEdit(${t.id},this.value);if(event.key==='Escape')cancelEdit(${t.id})" />`
+            : `<div class="task-title${t.done ? ' done' : ''}">${esc(t.title)}</div>`}
+          <div class="task-meta">
+            <span class="task-list-tag">${esc(t.list)}</span>
+            ${dt ? `<span class="task-date${dt.overdue && !t.done ? ' overdue' : ''}"><i class="ti ti-calendar" style="font-size:11px"></i> ${dt.text}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button onclick="startEdit(${t.id})" title="Edit"><i class="ti ti-edit"></i></button>
+          <button class="del" onclick="del(${t.id})" title="Delete"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty"><i class="ti ti-checkbox"></i>No tasks here. Add one above!</div>`;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="header">
+      <h1>My Tasks</h1>
+      <span class="progress-label">${done} of ${total} done</span>
+    </div>
+
+    <div class="lists-bar">${listPills}</div>
+
+    <div class="add-section">
+      <div class="add-row">
+        <input class="add-input" id="new-title" type="text" placeholder="What needs to be done?" value="${esc(state.newTitle)}"
+          oninput="state.newTitle=this.value" onkeydown="if(event.key==='Enter')addTask()" />
+        <button class="btn" onclick="addTask()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+      <div class="meta-row">
+        <input type="datetime-local" id="new-date" value="${state.newDate}" onchange="state.newDate=this.value" title="Set due date & time" />
+        <select id="new-list" onchange="state.newList=this.value">
+          <option value="">Choose list…</option>
+          ${state.lists.map(l => `<option value="${esc(l)}"${state.newList === l ? ' selected' : ''}>${esc(l)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn${state.filter === 'all' ? ' active' : ''}" onclick="setFilter('all')">All</button>
+      <button class="filter-btn${state.filter === 'active' ? ' active' : ''}" onclick="setFilter('active')">Active</button>
+      <button class="filter-btn${state.filter === 'done' ? ' active' : ''}" onclick="setFilter('done')">Done</button>
+      <span class="count">${filtered.length} task${filtered.length !== 1 ? 's' : ''}</span>
+    </div>
+
+    <div class="task-list">${taskItems}</div>
+
+    ${state.showModal ? `
+    <div class="overlay" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3>Create new list</h3>
+        <input type="text" id="new-list-name" placeholder="List name…" value="${esc(state.newListName)}"
+          oninput="state.newListName=this.value" onkeydown="if(event.key==='Enter')addList();if(event.key==='Escape')closeModal()" />
+        <div class="modal-actions">
+          <button onclick="closeModal()">Cancel</button>
+          <button class="primary" onclick="addList()">Create list</button>
+        </div>
+      </div>
+    </div>` : ''}
+  `;
+
+  if (state.showModal) setTimeout(() => document.getElementById('new-list-name')?.focus(), 10);
+  const editingTask = state.tasks.find(t => t.editing);
+  if (editingTask) setTimeout(() => { const el = document.getElementById('edit-' + editingTask.id); if (el) { el.focus(); el.select(); } }, 10);
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setList(l) { state.activeList = l; render(); }
+function setFilter(f) { state.filter = f; render(); }
+function toggle(id) { const t = state.tasks.find(t => t.id === id); if (t) { t.done = !t.done; save(); render(); } }
+function del(id) { if (confirm('Delete this task?')) { state.tasks = state.tasks.filter(t => t.id !== id); save(); render(); } }
+function startEdit(id) { state.tasks.forEach(t => t.editing = false); const t = state.tasks.find(t => t.id === id); if (t) t.editing = true; render(); }
+function saveEdit(id, val) { const t = state.tasks.find(t => t.id === id); if (t) { t.title = val.trim() || t.title; t.editing = false; save(); render(); } }
+function cancelEdit(id) { const t = state.tasks.find(t => t.id === id); if (t) { t.editing = false; render(); } }
+function addTask() {
+  const title = state.newTitle.trim();
+  if (!title) { document.getElementById('new-title')?.focus(); return; }
+  const list = state.newList || (state.activeList !== 'All' ? state.activeList : state.lists[0]);
+  state.tasks.unshift({ id: state.nextId++, title, list, done: false, date: state.newDate, editing: false });
+  state.newTitle = ''; state.newDate = ''; state.newList = '';
+  save(); render();
+  document.getElementById('new-title')?.focus();
+}
+function openModal() { state.showModal = true; state.newListName = ''; render(); }
+function closeModal() { state.showModal = false; render(); }
+function addList() {
+  const name = state.newListName.trim();
+  if (name && !state.lists.includes(name)) { state.lists.push(name); state.activeList = name; }
+  state.showModal = false; save(); render();
+}
+
+load();
+render();
+</script>
+</body>
+</html>
